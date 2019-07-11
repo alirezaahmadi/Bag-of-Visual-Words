@@ -1,0 +1,181 @@
+<!DOCTYPE html><html><head>
+<style>
+p { font-family: arial; font-size: 125%; style='white-space: nowrap;'>43,560 }
+code { font-size: 125% }
+</style>
+<script src='http://maps.google.com/maps/api/js?sensor=false' type='text/javascript'></script>
+</head>
+<body>
+<h2> Result --- Bag of words </h2>
+<h3> Team: Alireza Ahmadi, Robin Steffens </h3>
+<br>
+<br>
+<p> Input image: <code>text.png</code> </p>
+<table style='width:100%'>
+ <col width='500'> 
+  <col width='500'>  
+<tr>
+<td><img src='../img/text.png' alt='Input image' style='width:500px';></td>
+<td>
+    <div id='map' style='width:500px;height:375px;background:yellow'></div> 
+<script type='text/javascript'>
+   var locations = [
+[ 'Nearest Image 0', 47.996, 7.83819, 0],
+[ 'Nearest Image 1', 47.9951, 7.83696, 1],
+[ 'Nearest Image 2', 48.0123, 7.83577, 2],
+[ 'Nearest Image 3', 47.9995, 7.83865, 3],
+[ 'Nearest Image 4', 47.9963, 7.83728, 4],
+[ 'Nearest Image 5', 47.9978, 7.83749, 5],
+[ 'Nearest Image 6', 47.9954, 7.83716, 6],
+[ 'Nearest Image 7', 47.9962, 7.83744, 7],
+[ 'Nearest Image 8', 47.9963, 7.83713, 8],
+[ 'Nearest Image 9', 47.9954, 7.83718, 9]
+];
+    var map = new google.maps.Map(document.getElementById('map'), {
+     zoom: 14,
+    center: new google.maps.LatLng(47.996, 7.83819),
+    mapTypeId: google.maps.MapTypeId.ROADMAP
+  });
+  var infowindow = new google.maps.InfoWindow();
+  var marker, i;
+  for (i = 0; i < locations.length; i++) { 
+    marker = new google.maps.Marker({
+      position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+      map: map
+   });
+    google.maps.event.addListener(marker, 'click', (function(marker, i) {
+      return function() {
+      infowindow.setContent(locations[i][0]);
+      infowindow.open(map, marker);
+    }
+  })(marker, i));
+  }
+</script> 
+</td>
+</tr>
+</table>
+<br>
+<br>
+<br>
+<table style='width:100%'>
+ <col width='50'> 
+  <col width='500'>  
+<tr>
+<td><p> Nearest Image 1: <code>imageCompressedCam0_0003150</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0003150.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.710168</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.996</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83819</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 2: <code>imageCompressedCam0_0004280</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0004280.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.707698</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9951</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83696</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 3: <code>imageCompressedCam0_0006710</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0006710.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.703293</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 48.0123</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83577</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 4: <code>imageCompressedCam0_0002820</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0002820.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.698197</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9995</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83865</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 5: <code>imageCompressedCam0_0004330</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0004330.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.69361</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9963</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83728</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 6: <code>imageCompressedCam0_0004620</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0004620.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.693386</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9978</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83749</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 7: <code>imageCompressedCam0_0004290</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0004290.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.692971</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9954</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83716</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 8: <code>imageCompressedCam0_0003350</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0003350.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.689108</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9962</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83744</code> </p></td>
+</tr>
+<tr>
+<td><p> Nearest Image 9: <code>imageCompressedCam0_0003360</code></p></td>
+<td rowspan='4'> <img src='../data1/imageCompressedCam0_0003360.png' alt='Image' style='width:50%';></td>
+</tr>
+<tr>
+<td><p> Cosine-Comparison: <code> 0.687432</code> </p></td>
+</tr>
+<tr>
+<td><p> Latitude: <code> 47.9963</code> </p></td>
+</tr>
+<tr>
+<td><p> Longitude: <code> 7.83713</code> </p></td>
+</tr>
+</table>
+</body></html> 
