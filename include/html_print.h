@@ -1,3 +1,11 @@
+/*%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%    A Host implementation of Bag of Visual Words        
+% by: Alireza Ahmadi and Robin Steffens  
+% Alireza.Ahmadi@uni-bonn.de
+% Robin.Steffens@gmx.net                                   
+% University of Bonn- MSc Robotics & Geodetic Engineering                  
+% alirezaahmadi.xyz                                      
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 #include <include/BinLib.h>
 #include <stdio.h>
 #include <fstream>
