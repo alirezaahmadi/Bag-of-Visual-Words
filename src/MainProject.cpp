@@ -21,44 +21,37 @@ using namespace boost::filesystem;
 using namespace cv;
 using namespace std;
 
+vector<string> imageNames;
+vector<string> imageNamesList;
+vector<double> timeStamps;
+vector<gps_info> gpsPositions;
+std::vector<Product> prod;
+Kmeans_Flann KmeansFLANN;
+uint imageCount;
+
+#define LOG_EN
+
+void processDataset(void);
+void LoadDataset(void);
 
 int main(int argc, char **argv) {
   if (argc >= 2) {
 
-    std::vector<Product> prod;
-    Kmeans_Flann KmeansFLANN;
-    uint fileNum = 0;
-
-    vector<string> ImageNames = getImageNames("../data1");
-    // for (size_t i = 0; i < ImageNames.size(); i++) {
-    //   cout << ImageNames[i] << endl;
-    // }
-    vector<string> ImageNameList = modifyImageNames(ImageNames);
-    // for (size_t i = 0; i < ImageNameList.size(); i++) {
-    //   cout << ImageNameList[i] << endl;
-    // }
-    // freopen("output.txt", "w", stdout);
-    vector<double> time_stamp = readTimeStamps("../data1/image-timestamps.txt");
-    // for (size_t i = 0; i < 10; i++) {
-    //   cout << std::setprecision(20) << time_stamp[i] << endl;
-    // }
-    vector<gps_info> gps_info_vec = readGPSPositions("../data1/gps_info.txt");
-    // for (auto i = 0; i != 10; i++) {
-    //   std::cout << gps_info_vec[i].time << " ";
-    //   std::cout << gps_info_vec[i].latitude << " ";
-    //   std::cout << gps_info_vec[i].longitude << " " << endl;
-    // }
+    imageCount = 0;
+    
+    // loading images, timstamps and GPS positions
+    LoadDataset();
 
 
     float time_diff = 1000;
     float time_diff_old = 1000;
     size_t start_gps = 1;
     vector<gps_info> gps_image;
-    for (size_t i = 1; i < time_stamp.size(); i++){
-      for (size_t j = start_gps; start_gps < gps_info_vec.size(); j++){
-        time_diff = abs(time_stamp[i] - gps_info_vec[j].time);
+    for (size_t i = 1; i < timeStamps.size(); i++){
+      for (size_t j = start_gps; start_gps < gpsPositions.size(); j++){
+        time_diff = abs(timeStamps[i] - gpsPositions[j].time);
         if (time_diff > time_diff_old){
-          gps_info tmp_gps = {gps_info_vec[j-1].time, gps_info_vec[j-1].latitude, gps_info_vec[j-1].longitude};
+          gps_info tmp_gps = {gpsPositions[j-1].time, gpsPositions[j-1].latitude, gpsPositions[j-1].longitude};
           gps_image.push_back(tmp_gps);
           start_gps = j-1;
           i+=9;
@@ -70,10 +63,11 @@ int main(int argc, char **argv) {
       }
     }
 
+    // if user didn't enter number of images to process set it to maximum
     if ((argc == 4 && stoi(argv[3]) == 0) || argc == 2) {
-      fileNum = ImageNames.size();
+      imageCount = imageNames.size();
     } else if (argc >= 4 && stoi(argv[3]) != 0) {
-      fileNum = stoi(argv[3]);
+      imageCount = stoi(argv[3]);
     } else if (argc == 2 && stoi(argv[1]) == 1) {
       // dataset ....
     } else {
@@ -82,47 +76,28 @@ int main(int argc, char **argv) {
            << stoi(argv[2]) << " " << stoi(argv[3]) << endl;
       return 0;
     }
+
     #undef ClusterNum_K
     #define ClusterNum_K stoi(argv[2])
+    
     vector<HistImage> Img_Hist;
     vector<HistImage> inp_Hist{HistImage{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}}};
     HistImage tmp_histogram{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}};
-    for (uint i = 0; i < fileNum; ++i) {
+    for (uint i = 0; i < imageCount; ++i) {
       Img_Hist.push_back(tmp_histogram);
     }
-
+    // Getting the Dataset, extracting features and saving them to binray files.
     if (1 == stoi(argv[1])) {
       cout << "dataset ...." << endl;
-      Mat descriptorImage;
-      Product tmp{"Empty", 0, 0, false, {0}};
-      for (size_t i = 0; i < ImageNameList.size(); ++i) {
-        cout << "../data1/" + ImageNames[i] << endl;
-        Mat descriptors =
-            computeSifts("../data1/" + ImageNames[i], descriptorImage);
-
-        const string file_name = "../sifts/" + ImageNameList[i] + ".bin";
-        cerr << file_name << endl;
-        // products get loaded
-        for (int row = 0; row < descriptors.rows; row++) {
-          for (int col = 0; col < descriptors.cols; col++) {
-            tmp.sift[col] = descriptors.at<float>(row, col);
-          }
-          strcpy(tmp.name, ImageNameList[i].c_str());
-          tmp.siftNum = row;
-          tmp.isCentroid = false;
-          prod.push_back(tmp);
-        }
-        writeBinaryProduct(file_name, prod);
-        prod.clear();
-      }
+      processDataset();
     } else if (2 == stoi(argv[1])) {  
       cout << "Kmeans ...." << endl;
       // freopen("output.txt", "w", stdout);
       std::vector<uint> Img_SiftSize;
 
-      for (size_t i = 0; i < fileNum; ++i) {  // ImageNames.size()
-        // cout << "../data1/" + ImageNames[i] << endl;
-        const string file_name = "../sifts/" + ImageNameList[i] + ".bin";
+      for (size_t i = 0; i < imageCount; ++i) {  // imageNames.size()
+        // cout << "../data1/" + imageNames[i] << endl;
+        const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
         std::vector<Product> tmp_prod = readBinaryProduct(file_name);
         prod.insert(prod.end(), tmp_prod.begin(), tmp_prod.end());
         Img_SiftSize.push_back(tmp_prod.size());
@@ -152,7 +127,7 @@ int main(int argc, char **argv) {
       vector<vector<uint>> hist = hist_features(ImgHist, (uint)ClusterNum_K);
       vector<vector<float>> tfIdf_hist;
       uint Comp_reference = 0;
-      vector<string> InpNum = getImageNames("../img"); // takeing the name of input image from /img folder
+      vector<string> InpNum = getimageNames("../img"); // takeing the name of input image from /img folder
       // string input_image = "imageCompressedCam0_0000680";
       if (argc == 4) {
         // Build SIFT for Input Image
@@ -210,7 +185,7 @@ int main(int argc, char **argv) {
         Comp_reference = tfIdf_hist.size() - 1;  
       } else if (argc == 5) {
         Comp_reference = stoi(argv[4]);
-        InpNum[0] = ImageNames[stoi(argv[4])];
+        InpNum[0] = imageNames[stoi(argv[4])];
 
         cout << "Input: " << InpNum[0] << " --> data1" << endl;
         tfIdf_hist = tfIdf(hist);
@@ -221,8 +196,8 @@ int main(int argc, char **argv) {
 
       for (size_t i = 0; i < ImgHist.size(); i++) {
         // cout << i << ": " << compare_hist[i] << endl;
-        // cerr << ImageNameList.size() << "  ImName --> " << ImageNameList[i].c_str() << endl;
-        strcpy(ImgHist[i].name, ImageNameList[i].c_str());
+        // cerr << imageNamesList.size() << "  ImName --> " << imageNamesList[i].c_str() << endl;
+        strcpy(ImgHist[i].name, imageNamesList[i].c_str());
         ImgHist[i].time = gps_image[i].time;
         ImgHist[i].latitude = gps_image[i].latitude;
         ImgHist[i].longitude = gps_image[i].longitude;
@@ -244,4 +219,66 @@ int main(int argc, char **argv) {
          << endl;
   }
   return 0;
+}
+
+void processDataset(void){
+  Mat descriptorImage;
+      Product tmp{"Empty", 0, 0, false, {0}};
+      for (size_t i = 0; i < imageNamesList.size(); ++i) {
+        cout << "../data1/" + imageNames[i] << endl;
+        Mat descriptors =
+            computeSifts("../data1/" + imageNames[i], descriptorImage);
+
+        const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
+        cerr << file_name << endl;
+        // products get loaded
+        for (int row = 0; row < descriptors.rows; row++) {
+          for (int col = 0; col < descriptors.cols; col++) {
+            tmp.sift[col] = descriptors.at<float>(row, col);
+          }
+          strcpy(tmp.name, imageNamesList[i].c_str());
+          tmp.siftNum = row;
+          tmp.isCentroid = false;
+          prod.push_back(tmp);
+        }
+        writeBinaryProduct(file_name, prod);
+        prod.clear();
+      }
+}
+
+void LoadDataset(void){
+  // getting Dataset - loading Image names
+  imageNames = getimageNames("../data1");
+  #ifdef LOG_EN
+    for (size_t i = 0; i < imageNames.size(); i++) {
+      cout << imageNames[i] << endl;
+    }
+  #endif
+
+  // subtracting .png from image names
+  imageNamesList = modifyimageNames(imageNames);
+  #ifdef LOG_EN
+    for (size_t i = 0; i < imageNamesList.size(); i++) {
+      cout << imageNamesList[i] << endl;
+    }
+    freopen("imageNames.txt", "w", stdout);
+  #endif
+
+  // extracting timestapms from image list
+  timeStamps = readimageNamesList("../data1/image-imageNamesList.txt");
+  #ifdef LOG_EN
+    for (size_t i = 0; i < 10; i++) {
+      cout << std::setprecision(20) << timeStamps[i] << endl;
+    }
+  #endif
+
+  // reading GPS positions
+  gpsPositions = readGPSPositions("../data1/gps_info.txt");
+  #ifdef LOG_EN
+    for (auto i = 0; i != 10; i++) {
+      std::cout << gpsPositions[i].time << " ";
+      std::cout << gpsPositions[i].latitude << " ";
+      std::cout << gpsPositions[i].longitude << " " << endl;
+    }
+  #endif
 }

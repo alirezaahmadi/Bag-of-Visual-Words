@@ -57,7 +57,7 @@ int main() {
   //   int i = 0;
   //   size_t l_size = 6;
   //   std::vector<float> TimeStamp;
-  //   string file_name = "../data1/image-timestamps.txt";
+  //   string file_name = "../data1/image-imageNamesList.txt";
   //   std::string line;
   //   std::ifstream infile(file_name, std::ios_base::in);
   //   if (!infile.is_open()) {

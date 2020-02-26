@@ -22,15 +22,15 @@ using namespace std;
 using namespace boost::filesystem;
 
 // eliminate ".png" from file name
-vector<string> modifyImageNames(vector<string> ImageList) {
+vector<string> modifyimageNames(vector<string> ImageList) {
   for (size_t i = 0; i < ImageList.size(); ++i) {
     ImageList[i].erase(ImageList[i].size() - 4);
   }
   return ImageList;
 }
 // extracts filenames of images
-vector<string> getImageNames(string folder_name) {
-  vector<string> ImageNames;
+vector<string> getimageNames(string folder_name) {
+  vector<string> imageNames;
   // represent path in the filesystem (std::filesystem::path)
   path p(folder_name);
   std::cout << "Database from:  " << folder_name << std::endl;
@@ -41,16 +41,16 @@ vector<string> getImageNames(string folder_name) {
     // check if not a directory and if the file is a png-image
     if (!is_directory(i->path()) &&
         name_.compare(name_.size() - 3, 3, "png") == 0) {
-      ImageNames.push_back(i->path().filename().string());
+      imageNames.push_back(i->path().filename().string());
     } else {
       continue;
     }
   }
   std::cout << "Database Loaded" << endl;
-  return ImageNames;
+  return imageNames;
 }
-// extract the timestamps of images
-vector<double> readTimeStamps(string file_name) {
+// extract the imageNamesList of images
+vector<double> readimageNamesList(string file_name) {
   std::vector<double> TimeStamp = {0};
   int cnt = 0;
   size_t l_size = 6;
@@ -60,17 +60,17 @@ vector<double> readTimeStamps(string file_name) {
     std::cout << "Cant open file:  " << file_name << std::endl;
     return TimeStamp;
   } else {
-    std::cout << "TimeStamps from:  " << file_name << std::endl;
+    std::cout << "imageNamesList from:  " << file_name << std::endl;
     while (getline(infile, line)) {
       // save timestap as float
       TimeStamp.emplace_back(std::stod(line, &l_size));
       cnt++;
     }
-    std::cout << "TimeStamps Loaded" << endl;
+    std::cout << "imageNamesList Loaded" << endl;
     return TimeStamp;
   }
 }
-// extract the GPS points and timestamps
+// extract the GPS points and imageNamesList
 vector<gps_info> readGPSPositions(string file_name) {
   std::vector<gps_info> Pose;
   // beginnig and ending of the three elements time, lat, long in gps file
