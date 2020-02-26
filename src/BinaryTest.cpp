@@ -5,23 +5,26 @@
 % Alireza.Ahmadi@uni-bonn.de                             %
 % alirezaahmadi.xyz                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-#include <include/BinLib.h>
+#pragma once
+
+#include <vector>
 #include <stdio.h>
+#include <fstream>
+#include <sstream>
+#include <iostream>
 #include <algorithm>
 #include <boost/filesystem.hpp>
-#include <fstream>
-#include <iostream>
-#include <opencv2/highgui/highgui.hpp>
+
 #include <opencv2/opencv.hpp>
-#include <sstream>
-#include <vector>
+#include <opencv2/highgui/highgui.hpp>
+
 #include "include/sifts.h"
+#include "include/utils_parser.h"
 
 using namespace std;
 using namespace boost::filesystem;
 
 int main() {
-  BinIf bin;
   // const char* const file_name = "Updated_Sifts.bin";
   string name  = "test_file";
   const char* const file_name = ("../sifts/" + name + ".bin").c_str();
@@ -35,11 +38,11 @@ int main() {
     for (int i = 0; i < 128; i++) {
       prod[1].sift[i] = 2.1 * i;
     }
-    bin.WriteBinaryProduct(file_name, prod);
+    writeBinaryProduct(file_name, prod);
     std::cout << "Write Done!! \n";
   }
   {
-    std::vector<Product> prod = bin.ReadBinaryProduct(file_name);
+    std::vector<Product> prod = readBinaryProduct(file_name);
     for (const Product& p : prod) {
       std::cout << p.name << "  " << p.ClusterID << "  " << p.isCentroid
                 << "  " << p.siftNum << std::endl;

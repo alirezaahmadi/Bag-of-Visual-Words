@@ -6,8 +6,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 #pragma once
 
-#include <include/BinLib.h>
-#include <include/parser.h>
+
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
@@ -62,7 +61,6 @@ vector<vector<float>> tfIdf(vector<vector<uint>>& centroids_per_image) {
   cout << " tf_idf done ... " << endl;
   return tf_idf;
 }
-
 vector<float> cosine_comparison(vector<vector<float>>& hist_1, vector<float>& hist_2) {
   vector<float> comparison;
   float sum_ab = 0.0;
@@ -86,27 +84,4 @@ vector<float> cosine_comparison(vector<vector<float>>& hist_1, vector<float>& hi
   }
   cout << " cosine_comparison done ... " << endl;
   return comparison;
-}
-
-vector<vector<uint>> hist_features(vector<HistImage>& HI, uint K) {
-
-  vector<vector<uint>> centroids_per_image;
-  std::vector<uint> tmp_hist;
-
-  // 2D-vector with centroids per image
-  cout << "Size Hist-2d-Vec: " << HI.size() << ": " << K << endl;
-  for (size_t j = 0; j < HI.size(); j++) {
-    for (uint i = 0; i < K; i++){
-      tmp_hist.push_back(HI[j].hist[i]);
-    }
-    centroids_per_image.push_back(tmp_hist);
-    tmp_hist.clear();
-  }
-  return centroids_per_image;
-}
-
-bool ImgHist_sorter(const HistImage &a, const HistImage &b) {
-    if (a.CosCom > b.CosCom)
-        return true;
-    return false;
 }

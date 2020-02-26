@@ -6,20 +6,23 @@
 % University of Bonn- MSc Robotics & Geodetic Engineering                  
 % alirezaahmadi.xyz                                      
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-#include <include/BinLib.h>
+#pragma once
+
 #include <stdio.h>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
+#include <include/utils_parser.h>
+#include <include/imageHistogram.h>
+
 using namespace std;
 
 void html_print(string input_image, size_t results_bests, int argc) {
-  BinIf bin;
 
   std::vector<HistImage> im_hist =
-      bin.ReadBinaryHistImage("../sifts/results.bin");
+      readBinaryHistImage("../sifts/results.bin");
 
   ofstream myfile;
   myfile.open("../html/report.html");

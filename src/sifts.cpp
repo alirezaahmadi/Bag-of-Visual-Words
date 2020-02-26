@@ -1,14 +1,12 @@
-// Copyright Igor Bogoslavskyi, year 2015.
-// In case of any problems with the code please contact me.
-// Email: igor.bogoslavskyi@uni-bonn.de.
+#pragma once
 
-#include "include/sifts.h"
+#include <string>
 #include <vector>
 #include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-#include <string>
 
+#include "include/sifts.h"
 
 using std::string;
 using std::vector;

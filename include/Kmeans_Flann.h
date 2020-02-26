@@ -6,12 +6,13 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
 #pragma once
 
-#include <include/BinLib.h>
 #include <stdio.h>
 #include <algorithm>
 #include <iostream>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
+
+#include <include/utils_parser.h>
 
 using namespace std;
 

@@ -1,7 +1,3 @@
-// Copyright Igor Bogoslavskyi, year 2015.
-// In case of any problems with the code please contact me.
-// Email: igor.bogoslavskyi@uni-bonn.de.
-
 #pragma once
 
 #include <opencv2/core/core.hpp>

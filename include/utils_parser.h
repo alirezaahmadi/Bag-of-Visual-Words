@@ -16,18 +16,20 @@
 #include <string>
 #include <vector>
 
+#include "include/types.h"
+
 using namespace std;
 using namespace boost::filesystem;
 
 // eliminate ".png" from file name
-vector<string> FileNameSubtract(vector<string> ImageList) {
+vector<string> modifyImageNames(vector<string> ImageList) {
   for (size_t i = 0; i < ImageList.size(); ++i) {
     ImageList[i].erase(ImageList[i].size() - 4);
   }
   return ImageList;
 }
 // extracts filenames of images
-vector<string> FileNamesInDirectory(string folder_name) {
+vector<string> getImageNames(string folder_name) {
   vector<string> ImageNames;
   // represent path in the filesystem (std::filesystem::path)
   path p(folder_name);
@@ -48,7 +50,7 @@ vector<string> FileNamesInDirectory(string folder_name) {
   return ImageNames;
 }
 // extract the timestamps of images
-vector<double> ReadTimeStampFile(string file_name) {
+vector<double> readTimeStamps(string file_name) {
   std::vector<double> TimeStamp = {0};
   int cnt = 0;
   size_t l_size = 6;
@@ -69,7 +71,7 @@ vector<double> ReadTimeStampFile(string file_name) {
   }
 }
 // extract the GPS points and timestamps
-vector<gps_info> ReadGpsFile(string file_name) {
+vector<gps_info> readGPSPositions(string file_name) {
   std::vector<gps_info> Pose;
   // beginnig and ending of the three elements time, lat, long in gps file
   std::string line;
@@ -125,3 +127,20 @@ vector<gps_info> ReadGpsFile(string file_name) {
   }
 }
 // extract Hist feature estimation for each image file
+void writeBinaryProduct(const std::string& file_name,
+                        const std::vector<Product>& prod) {
+  std::ofstream file(file_name, std::ios::binary);
+  for (const Product& p : prod) file.write(p.name, sizeof(p));
+}
+std::vector<Product> readBinaryProduct(const std::string& file_name) {
+  std::vector<Product> prod;
+  std::ifstream file(file_name, std::ios::binary);
+
+  Product temp;
+  while (file.read(
+      temp.name,
+      sizeof(temp)))       // for every Product read from the file
+    prod.push_back(temp);  // add it to the vector
+
+  return prod;
+}

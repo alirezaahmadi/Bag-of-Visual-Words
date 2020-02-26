@@ -6,25 +6,16 @@
 % University of Bonn- MSc Robotics & Geodetic Engineering                  
 % alirezaahmadi.xyz                                      
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%*/
-#include <include/BinLib.h>
-#include <include/Kmeans_Flann.h>
-#include <include/html_print.h>
-#include <include/parser.h>
-#include <include/sifts.h>
-#include <include/tools.h>
-#include <stdio.h>
-#include <algorithm>
+
 #include <boost/filesystem.hpp>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <iostream>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <sstream>
-#include <string>
-#include <vector>
-#include <iomanip>
+#include <opencv2/highgui/highgui.hpp>
+
+#include <include/Kmeans_Flann.h>
+#include <include/utils_html.h>
+#include <include/utils_parser.h>
+#include <include/sifts.h>
+#include <include/utils.h>
 
 using namespace boost::filesystem;
 using namespace cv;
@@ -33,25 +24,25 @@ using namespace std;
 
 int main(int argc, char **argv) {
   if (argc >= 2) {
-    BinIf bin;
+
     std::vector<Product> prod;
     Kmeans_Flann KmeansFLANN;
     uint fileNum = 0;
 
-    vector<string> ImageNames = FileNamesInDirectory("../data1");
+    vector<string> ImageNames = getImageNames("../data1");
     // for (size_t i = 0; i < ImageNames.size(); i++) {
     //   cout << ImageNames[i] << endl;
     // }
-    vector<string> ImageNameList = FileNameSubtract(ImageNames);
+    vector<string> ImageNameList = modifyImageNames(ImageNames);
     // for (size_t i = 0; i < ImageNameList.size(); i++) {
     //   cout << ImageNameList[i] << endl;
     // }
     // freopen("output.txt", "w", stdout);
-    vector<double> time_stamp = ReadTimeStampFile("../data1/image-timestamps.txt");
+    vector<double> time_stamp = readTimeStamps("../data1/image-timestamps.txt");
     // for (size_t i = 0; i < 10; i++) {
     //   cout << std::setprecision(20) << time_stamp[i] << endl;
     // }
-    vector<gps_info> gps_info_vec = ReadGpsFile("../data1/gps_info.txt");
+    vector<gps_info> gps_info_vec = readGPSPositions("../data1/gps_info.txt");
     // for (auto i = 0; i != 10; i++) {
     //   std::cout << gps_info_vec[i].time << " ";
     //   std::cout << gps_info_vec[i].latitude << " ";
@@ -121,7 +112,7 @@ int main(int argc, char **argv) {
           tmp.isCentroid = false;
           prod.push_back(tmp);
         }
-        bin.WriteBinaryProduct(file_name, prod);
+        writeBinaryProduct(file_name, prod);
         prod.clear();
       }
     } else if (2 == stoi(argv[1])) {  
@@ -132,7 +123,7 @@ int main(int argc, char **argv) {
       for (size_t i = 0; i < fileNum; ++i) {  // ImageNames.size()
         // cout << "../data1/" + ImageNames[i] << endl;
         const string file_name = "../sifts/" + ImageNameList[i] + ".bin";
-        std::vector<Product> tmp_prod = bin.ReadBinaryProduct(file_name);
+        std::vector<Product> tmp_prod = readBinaryProduct(file_name);
         prod.insert(prod.end(), tmp_prod.begin(), tmp_prod.end());
         Img_SiftSize.push_back(tmp_prod.size());
       }
@@ -142,26 +133,26 @@ int main(int argc, char **argv) {
       vector<Product> Centroids =
           KmeansFLANN.kmeans(prod, (uint16_t)ClusterNum_K, Img_Hist, Img_SiftSize);
 
-      bin.WriteBinaryProduct("../sifts/Final_Centroids.bin", Centroids);
-      bin.WriteBinaryProduct("../sifts/Updated_Sifts.bin", prod);
-      bin.WriteBinaryHistImage("../sifts/Img_Hist.bin", Img_Hist);
+      writeBinaryProduct("../sifts/Final_Centroids.bin", Centroids);
+      writeBinaryProduct("../sifts/Updated_Sifts.bin", prod);
+      writeBinaryHistImage("../sifts/Img_Hist.bin", Img_Hist);
     } else if (3 == stoi(argv[1])) { 
       cout << "Hist_TFIDF ...." << endl;
       vector<Product> Centroids =
-          bin.ReadBinaryProduct("../sifts/Final_Centroids.bin"); // output of kmeans...
+          readBinaryProduct("../sifts/Final_Centroids.bin"); // output of kmeans...
       cout << "Number of Final Centroids: " << Centroids.size() << " -> "
            << endl;
       vector<Product> Sifts =
-          bin.ReadBinaryProduct("../sifts/Updated_Sifts.bin"); // we dont use this anymore ... 
+          readBinaryProduct("../sifts/Updated_Sifts.bin"); // we dont use this anymore ... 
       cout << "Number of Updated Sifts: " << Sifts.size() << " -> " << endl;
       vector<HistImage> ImgHist =
-          bin.ReadBinaryHistImage("../sifts/Img_Hist.bin"); // hist struct of each image
+          readBinaryHistImage("../sifts/Img_Hist.bin"); // hist struct of each image
       cout << "Number of histograms: " << ImgHist.size() << " -> " << endl;
 
       vector<vector<uint>> hist = hist_features(ImgHist, (uint)ClusterNum_K);
       vector<vector<float>> tfIdf_hist;
       uint Comp_reference = 0;
-      vector<string> InpNum = FileNamesInDirectory("../img"); // takeing the name of input image from /img folder
+      vector<string> InpNum = getImageNames("../img"); // takeing the name of input image from /img folder
       // string input_image = "imageCompressedCam0_0000680";
       if (argc == 4) {
         // Build SIFT for Input Image
@@ -244,7 +235,7 @@ int main(int argc, char **argv) {
       //        << endl;
       // }
 
-      bin.WriteBinaryHistImage("../sifts/results.bin", ImgHist);
+      writeBinaryHistImage("../sifts/results.bin", ImgHist);
       html_print(InpNum[0], 10, argc);
     }
   } else {
