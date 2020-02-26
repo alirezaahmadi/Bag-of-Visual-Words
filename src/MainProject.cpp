@@ -27,16 +27,20 @@ vector<double> timeStamps;
 vector<gps_info> gpsPositions;
 std::vector<Product> prod;
 Kmeans_Flann KmeansFLANN;
+vector<HistImage> Img_Hist;
 uint imageCount;
+vector<HistImage> inp_Hist;
+vector<gps_info> gps_image;
 
 #define LOG_EN
 
 void processDataset(void);
 void LoadDataset(void);
-void runEvaluation(void);
-void runClassifier(void);
+void runEvaluation(int argc, char **argv);
+void runClassifier(int argc, char **argv);
 
 int main(int argc, char **argv) {
+
   if (argc >= 2) {
 
     imageCount = 0;
@@ -48,7 +52,7 @@ int main(int argc, char **argv) {
     float time_diff = 1000;
     float time_diff_old = 1000;
     size_t start_gps = 1;
-    vector<gps_info> gps_image;
+   
     for (size_t i = 1; i < timeStamps.size(); i++){
       for (size_t j = start_gps; start_gps < gpsPositions.size(); j++){
         time_diff = abs(timeStamps[i] - gpsPositions[j].time);
@@ -82,8 +86,8 @@ int main(int argc, char **argv) {
     #undef ClusterNum_K
     #define ClusterNum_K stoi(argv[2])
 
-    vector<HistImage> Img_Hist;
-    vector<HistImage> inp_Hist{HistImage{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}}};
+    
+    inp_Hist = {HistImage{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}}};
     HistImage tmp_histogram{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}};
     for (uint i = 0; i < imageCount; ++i) {
       Img_Hist.push_back(tmp_histogram);
@@ -94,10 +98,10 @@ int main(int argc, char **argv) {
       processDataset();
     } else if (2 == stoi(argv[1])) {  
       cout << "Classifier ...." << endl;
-      runClassifier();
+      runClassifier(argc, argv);
     } else if (3 == stoi(argv[1])) { 
       cout << "Evaluation ...." << endl;
-      runEvaluation();
+      runEvaluation(argc, argv);
     }
   } else {
     cout << "Required inputs: Mode {1:dataset_run, 2:Kmeans, 3:hist&TFIDF} , K "
@@ -132,7 +136,7 @@ void processDataset(void){
       }
 }
 
-void runClassifier(void){
+void runClassifier(int argc, char **argv){
   // freopen("output.txt", "w", stdout);
       std::vector<uint> Img_SiftSize;
 
@@ -154,7 +158,7 @@ void runClassifier(void){
       writeBinaryHistImage("../sifts/Img_Hist.bin", Img_Hist);
 }
 
-void runEvaluation(void){
+void runEvaluation(int argc, char **argv){
   vector<Product> Centroids =
       readBinaryProduct("../sifts/Final_Centroids.bin"); // output of kmeans...
   cout << "Number of Final Centroids: " << Centroids.size() << " -> "
