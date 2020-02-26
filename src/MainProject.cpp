@@ -33,6 +33,8 @@ uint imageCount;
 
 void processDataset(void);
 void LoadDataset(void);
+void runEvaluation(void);
+void runClassifier(void);
 
 int main(int argc, char **argv) {
   if (argc >= 2) {
@@ -79,7 +81,7 @@ int main(int argc, char **argv) {
 
     #undef ClusterNum_K
     #define ClusterNum_K stoi(argv[2])
-    
+
     vector<HistImage> Img_Hist;
     vector<HistImage> inp_Hist{HistImage{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}}};
     HistImage tmp_histogram{"Empty", 0, 0.0, 0.0, 0.0, 0.0, {0.0}};
@@ -91,127 +93,11 @@ int main(int argc, char **argv) {
       cout << "dataset ...." << endl;
       processDataset();
     } else if (2 == stoi(argv[1])) {  
-      cout << "Kmeans ...." << endl;
-      // freopen("output.txt", "w", stdout);
-      std::vector<uint> Img_SiftSize;
-
-      for (size_t i = 0; i < imageCount; ++i) {  // imageNames.size()
-        // cout << "../data1/" + imageNames[i] << endl;
-        const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
-        std::vector<Product> tmp_prod = readBinaryProduct(file_name);
-        prod.insert(prod.end(), tmp_prod.begin(), tmp_prod.end());
-        Img_SiftSize.push_back(tmp_prod.size());
-      }
-      cout << "Total Number of Sifts: " << prod.size() << " : "
-           << Img_SiftSize.size() << endl;
-
-      vector<Product> Centroids =
-          KmeansFLANN.kmeans(prod, (uint16_t)ClusterNum_K, Img_Hist, Img_SiftSize);
-
-      writeBinaryProduct("../sifts/Final_Centroids.bin", Centroids);
-      writeBinaryProduct("../sifts/Updated_Sifts.bin", prod);
-      writeBinaryHistImage("../sifts/Img_Hist.bin", Img_Hist);
+      cout << "Classifier ...." << endl;
+      runClassifier();
     } else if (3 == stoi(argv[1])) { 
-      cout << "Hist_TFIDF ...." << endl;
-      vector<Product> Centroids =
-          readBinaryProduct("../sifts/Final_Centroids.bin"); // output of kmeans...
-      cout << "Number of Final Centroids: " << Centroids.size() << " -> "
-           << endl;
-      vector<Product> Sifts =
-          readBinaryProduct("../sifts/Updated_Sifts.bin"); // we dont use this anymore ... 
-      cout << "Number of Updated Sifts: " << Sifts.size() << " -> " << endl;
-      vector<HistImage> ImgHist =
-          readBinaryHistImage("../sifts/Img_Hist.bin"); // hist struct of each image
-      cout << "Number of histograms: " << ImgHist.size() << " -> " << endl;
-
-      vector<vector<uint>> hist = hist_features(ImgHist, (uint)ClusterNum_K);
-      vector<vector<float>> tfIdf_hist;
-      uint Comp_reference = 0;
-      vector<string> InpNum = getimageNames("../img"); // takeing the name of input image from /img folder
-      // string input_image = "imageCompressedCam0_0000680";
-      if (argc == 4) {
-        // Build SIFT for Input Image
-        vector<Product> prod_input;
-        Mat descriptorImage_Input;
-        Product tmp_input{"Empty", 0, 0, false, {0}};
-        Mat descriptor_input =
-            computeSifts("../img/" + InpNum[0], descriptorImage_Input);
-
-        cout << "Input: " << InpNum[0] << endl;
-
-        // making a product type for input image and filling in 
-        for (int row = 0; row < descriptor_input.rows; row++) {
-          for (int col = 0; col < descriptor_input.cols; col++) {
-            tmp_input.sift[col] = descriptor_input.at<float>(row, col);
-          }
-          strcpy(tmp_input.name, InpNum[0].c_str());
-          tmp_input.siftNum = row;
-          tmp_input.isCentroid = false;
-          prod_input.push_back(tmp_input);
-        }
-
-        cv::Mat centroid_Mat;
-        for (size_t i = 0; i < Centroids.size(); i++) {     // Prod to Mat format ... Centriods
-          cv::Mat centroid_vec(1, 128, cv::DataType<float>::type,
-                               Centroids[i].sift);
-          centroid_Mat.push_back(centroid_vec);
-        }
-
-        // Loop for Kmeans-Flann
-        cv::flann::KDTreeIndexParams indexParams(4);
-        cv::flann::Index kdtree(centroid_Mat, indexParams);
-        // Store Indizes from k nearest sifts
-        cv::Mat nearestVectorIdx(1, ClusterNum_K, cv::DataType<int>::type);
-        cv::Mat nearestVectorDist(1, ClusterNum_K, cv::DataType<float>::type);
-
-        for (size_t i = 0; i < prod_input.size(); i++) {    // Prod to Mat format ... Samples
-          cv::Mat sift_vec(1, 128, cv::DataType<float>::type,
-                           prod_input[i].sift);
-
-          kdtree.knnSearch(sift_vec, nearestVectorIdx, nearestVectorDist, 1);
-
-          // 1 nearest rows of prod_input get the number of cluster
-          uint closestIdx = nearestVectorIdx.at<uint>(0, 0);
-          prod_input[i].ClusterID = closestIdx;
-          inp_Hist[0].hist[nearestVectorIdx.at<uint>(0, 0)]++;
-        }
-        vector<vector<uint>> inp_hist =
-            hist_features(inp_Hist, (uint)ClusterNum_K);
-
-        hist.push_back(inp_hist[0]);
-
-        tfIdf_hist = tfIdf(hist);
-
-        Comp_reference = tfIdf_hist.size() - 1;  
-      } else if (argc == 5) {
-        Comp_reference = stoi(argv[4]);
-        InpNum[0] = imageNames[stoi(argv[4])];
-
-        cout << "Input: " << InpNum[0] << " --> data1" << endl;
-        tfIdf_hist = tfIdf(hist);
-      }
-
-      vector<float> compare_hist =
-          cosine_comparison(tfIdf_hist, tfIdf_hist[Comp_reference]);
-
-      for (size_t i = 0; i < ImgHist.size(); i++) {
-        // cout << i << ": " << compare_hist[i] << endl;
-        // cerr << imageNamesList.size() << "  ImName --> " << imageNamesList[i].c_str() << endl;
-        strcpy(ImgHist[i].name, imageNamesList[i].c_str());
-        ImgHist[i].time = gps_image[i].time;
-        ImgHist[i].latitude = gps_image[i].latitude;
-        ImgHist[i].longitude = gps_image[i].longitude;
-        ImgHist[i].CosCom = compare_hist[i];
-      }
-      std::sort(ImgHist.begin(), ImgHist.end(), ImgHist_sorter);
-
-      // for (size_t i = 0; i < ImgHist.size(); i++) {
-      //   cout << i << ": " << ImgHist[i].CosCom << " -> " << compare_hist[i]
-      //        << endl;
-      // }
-
-      writeBinaryHistImage("../sifts/results.bin", ImgHist);
-      html_print(InpNum[0], 10, argc);
+      cout << "Evaluation ...." << endl;
+      runEvaluation();
     }
   } else {
     cout << "Required inputs: Mode {1:dataset_run, 2:Kmeans, 3:hist&TFIDF} , K "
@@ -244,6 +130,130 @@ void processDataset(void){
         writeBinaryProduct(file_name, prod);
         prod.clear();
       }
+}
+
+void runClassifier(void){
+  // freopen("output.txt", "w", stdout);
+      std::vector<uint> Img_SiftSize;
+
+      for (size_t i = 0; i < imageCount; ++i) {  // imageNames.size()
+        // cout << "../data1/" + imageNames[i] << endl;
+        const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
+        std::vector<Product> tmp_prod = readBinaryProduct(file_name);
+        prod.insert(prod.end(), tmp_prod.begin(), tmp_prod.end());
+        Img_SiftSize.push_back(tmp_prod.size());
+      }
+      cout << "Total Number of Sifts: " << prod.size() << " : "
+           << Img_SiftSize.size() << endl;
+
+      vector<Product> Centroids =
+          KmeansFLANN.kmeans(prod, (uint16_t)ClusterNum_K, Img_Hist, Img_SiftSize);
+
+      writeBinaryProduct("../sifts/Final_Centroids.bin", Centroids);
+      writeBinaryProduct("../sifts/Updated_Sifts.bin", prod);
+      writeBinaryHistImage("../sifts/Img_Hist.bin", Img_Hist);
+}
+
+void runEvaluation(void){
+  vector<Product> Centroids =
+      readBinaryProduct("../sifts/Final_Centroids.bin"); // output of kmeans...
+  cout << "Number of Final Centroids: " << Centroids.size() << " -> "
+        << endl;
+  vector<Product> Sifts =
+      readBinaryProduct("../sifts/Updated_Sifts.bin"); // we dont use this anymore ... 
+  cout << "Number of Updated Sifts: " << Sifts.size() << " -> " << endl;
+  vector<HistImage> ImgHist =
+      readBinaryHistImage("../sifts/Img_Hist.bin"); // hist struct of each image
+  cout << "Number of histograms: " << ImgHist.size() << " -> " << endl;
+
+  vector<vector<uint>> hist = hist_features(ImgHist, (uint)ClusterNum_K);
+  vector<vector<float>> tfIdf_hist;
+  uint Comp_reference = 0;
+  vector<string> InpNum = getimageNames("../img"); // takeing the name of input image from /img folder
+  // string input_image = "imageCompressedCam0_0000680";
+  if (argc == 4) {
+    // Build SIFT for Input Image
+    vector<Product> prod_input;
+    Mat descriptorImage_Input;
+    Product tmp_input{"Empty", 0, 0, false, {0}};
+    Mat descriptor_input =
+        computeSifts("../img/" + InpNum[0], descriptorImage_Input);
+
+    cout << "Input: " << InpNum[0] << endl;
+
+    // making a product type for input image and filling in 
+    for (int row = 0; row < descriptor_input.rows; row++) {
+      for (int col = 0; col < descriptor_input.cols; col++) {
+        tmp_input.sift[col] = descriptor_input.at<float>(row, col);
+      }
+      strcpy(tmp_input.name, InpNum[0].c_str());
+      tmp_input.siftNum = row;
+      tmp_input.isCentroid = false;
+      prod_input.push_back(tmp_input);
+    }
+
+    cv::Mat centroid_Mat;
+    for (size_t i = 0; i < Centroids.size(); i++) {     // Prod to Mat format ... Centriods
+      cv::Mat centroid_vec(1, 128, cv::DataType<float>::type,
+                            Centroids[i].sift);
+      centroid_Mat.push_back(centroid_vec);
+    }
+
+    // Loop for Kmeans-Flann
+    cv::flann::KDTreeIndexParams indexParams(4);
+    cv::flann::Index kdtree(centroid_Mat, indexParams);
+    // Store Indizes from k nearest sifts
+    cv::Mat nearestVectorIdx(1, ClusterNum_K, cv::DataType<int>::type);
+    cv::Mat nearestVectorDist(1, ClusterNum_K, cv::DataType<float>::type);
+
+    for (size_t i = 0; i < prod_input.size(); i++) {    // Prod to Mat format ... Samples
+      cv::Mat sift_vec(1, 128, cv::DataType<float>::type,
+                        prod_input[i].sift);
+
+      kdtree.knnSearch(sift_vec, nearestVectorIdx, nearestVectorDist, 1);
+
+      // 1 nearest rows of prod_input get the number of cluster
+      uint closestIdx = nearestVectorIdx.at<uint>(0, 0);
+      prod_input[i].ClusterID = closestIdx;
+      inp_Hist[0].hist[nearestVectorIdx.at<uint>(0, 0)]++;
+    }
+    vector<vector<uint>> inp_hist =
+        hist_features(inp_Hist, (uint)ClusterNum_K);
+
+    hist.push_back(inp_hist[0]);
+
+    tfIdf_hist = tfIdf(hist);
+
+    Comp_reference = tfIdf_hist.size() - 1;  
+  } else if (argc == 5) {
+    Comp_reference = stoi(argv[4]);
+    InpNum[0] = imageNames[stoi(argv[4])];
+
+    cout << "Input: " << InpNum[0] << " --> data1" << endl;
+    tfIdf_hist = tfIdf(hist);
+  }
+
+  vector<float> compare_hist =
+      cosine_comparison(tfIdf_hist, tfIdf_hist[Comp_reference]);
+
+  for (size_t i = 0; i < ImgHist.size(); i++) {
+    // cout << i << ": " << compare_hist[i] << endl;
+    // cerr << imageNamesList.size() << "  ImName --> " << imageNamesList[i].c_str() << endl;
+    strcpy(ImgHist[i].name, imageNamesList[i].c_str());
+    ImgHist[i].time = gps_image[i].time;
+    ImgHist[i].latitude = gps_image[i].latitude;
+    ImgHist[i].longitude = gps_image[i].longitude;
+    ImgHist[i].CosCom = compare_hist[i];
+  }
+  std::sort(ImgHist.begin(), ImgHist.end(), ImgHist_sorter);
+
+  // for (size_t i = 0; i < ImgHist.size(); i++) {
+  //   cout << i << ": " << ImgHist[i].CosCom << " -> " << compare_hist[i]
+  //        << endl;
+  // }
+
+  writeBinaryHistImage("../sifts/results.bin", ImgHist);
+  html_print(InpNum[0], 10, argc);
 }
 
 void LoadDataset(void){
