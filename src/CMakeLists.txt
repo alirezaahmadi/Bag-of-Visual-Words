@@ -9,7 +9,7 @@ target_link_libraries(BinaryTest
   ${Boost_SYSTEM_LIBRARY}
 )
 
-add_executable(MainProject MainProject.cpp)
+add_executable(BoVW BoVW.cpp)
 target_link_libraries(MainProject ${OpenCV_LIBS})
 target_link_libraries(MainProject sift_compute_lib ${OpenCV_LIBS})
 target_link_libraries(MainProject 
