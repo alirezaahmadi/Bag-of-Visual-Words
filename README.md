@@ -33,13 +33,13 @@ Now you are ready to run the code:
 you have 3 differnet modes to run the code
 1. loading dataset and building feature space and saving them as binary files
 
-    ./BoVW 1 *Dataset_path w.r.t to /bin folder*
+        ./BoVW 1 *Dataset_path w.r.t to /bin folder*
     
 2. loading binary files and runing K-means to classify the features based on the similarity
 
-    ./BoVW 2
+        ./BoVW 2
     
 3. runing evaluation based on TFIDF and image histograms and finding 10 the most similar images to one test image wihch is given as input
     
-    ./BoVW 3 *test image directory with .png type*
+        ./BoVW 3 *test image directory with .png type*
     
