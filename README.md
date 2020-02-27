@@ -1,4 +1,7 @@
 # Bag of Visual Words
+
+![Bag of Visual Words](...) 
+
 This is an implementation of Bag-og-visual-Words method which is able to classify images based on their similariy. The similarity here defines based on 2D photometric featues (in particular we are using SIFT features with a dimension of 128 array). The implementation is menat to be simplistic and easily be used.
 
 it uses gps positions and timestpams to sort out the images and evaluate the results. also an HTML interface is provided wihch gets updated based on the results of each execution. inbelow you can find dependencies and more information about using code.
@@ -30,7 +33,12 @@ it uses gps positions and timestpams to sort out the images and evaluate the res
     
 Now you are ready to run the code:
 ## How to run code
-you have 3 differnet modes to run the code
+you have 3 different modes to run the code:
+
+first navigate into */bin* folder:
+
+        cd ../bin/
+
 1. loading dataset and building feature space and saving them as binary files
 
         ./BoVW 1 *Dataset_path w.r.t to /bin folder*
@@ -43,3 +51,9 @@ you have 3 differnet modes to run the code
     
         ./BoVW 3 *test image directory with .png type*
     
+## Viewing Results
+By running third run command code will generate an HTML file which look like the image below showing searched test image and 10 most similar candidates in the dataset with their locations on the google maps and a measure of similarity in percentage.
+
+**NOTE** result image is is stored in */html* folder
+
+![Result HTML Page](...)

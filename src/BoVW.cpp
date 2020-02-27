@@ -31,11 +31,12 @@ vector<HistImage> Img_Hist;
 uint imageCount;
 vector<HistImage> inp_Hist;
 vector<gps_info> gps_image;
+std::string datasetDirectory;
 
 #define LOG_EN
 
 void processDataset(void);
-void LoadDataset(void);
+void LoadDataset(int argc, char **argv);
 void runEvaluation(int argc, char **argv);
 void runClassifier(int argc, char **argv);
 
@@ -46,7 +47,7 @@ int main(int argc, char **argv) {
     imageCount = 0;
     
     // loading images, timstamps and GPS positions
-    LoadDataset();
+    LoadDataset(argc, argv);
 
 
     float time_diff = 1000;
@@ -115,9 +116,9 @@ void processDataset(void){
   Mat descriptorImage;
       Product tmp{"Empty", 0, 0, false, {0}};
       for (size_t i = 0; i < imageNamesList.size(); ++i) {
-        cout << "../data1/" + imageNames[i] << endl;
+        cout << datasetDirectory + imageNames[i] << endl;
         Mat descriptors =
-            computeSifts("../data1/" + imageNames[i], descriptorImage);
+            computeSifts(datasetDirectory + imageNames[i], descriptorImage);
 
         const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
         cerr << file_name << endl;
@@ -137,16 +138,16 @@ void processDataset(void){
 }
 
 void runClassifier(int argc, char **argv){
-  // freopen("output.txt", "w", stdout);
+
       std::vector<uint> Img_SiftSize;
 
-      for (size_t i = 0; i < imageCount; ++i) {  // imageNames.size()
-        // cout << "../data1/" + imageNames[i] << endl;
+      for (size_t i = 0; i < imageCount; ++i) {  
         const string file_name = "../sifts/" + imageNamesList[i] + ".bin";
         std::vector<Product> tmp_prod = readBinaryProduct(file_name);
         prod.insert(prod.end(), tmp_prod.begin(), tmp_prod.end());
         Img_SiftSize.push_back(tmp_prod.size());
       }
+
       cout << "Total Number of Sifts: " << prod.size() << " : "
            << Img_SiftSize.size() << endl;
 
@@ -233,7 +234,7 @@ void runEvaluation(int argc, char **argv){
     Comp_reference = stoi(argv[4]);
     InpNum[0] = imageNames[stoi(argv[4])];
 
-    cout << "Input: " << InpNum[0] << " --> data1" << endl;
+    cout << "Input: " << InpNum[0] << " --> " + datasetDirectory << endl;
     tfIdf_hist = tfIdf(hist);
   }
 
@@ -260,9 +261,11 @@ void runEvaluation(int argc, char **argv){
   html_print(InpNum[0], 10, argc);
 }
 
-void LoadDataset(void){
+void LoadDataset(int argc, char **argv){
+  assert(argc == 3);
+  datasetDirectory = argv[2];
   // getting Dataset - loading Image names
-  imageNames = getimageNames("../data1");
+  imageNames = getimageNames(datasetDirectory);
   #ifdef LOG_EN
     for (size_t i = 0; i < imageNames.size(); i++) {
       cout << imageNames[i] << endl;
@@ -279,7 +282,7 @@ void LoadDataset(void){
   #endif
 
   // extracting timestapms from image list
-  timeStamps = readimageNamesList("../data1/image-imageNamesList.txt");
+  timeStamps = readimageNamesList(datasetDirectory + "/image-imageNamesList.txt");
   #ifdef LOG_EN
     for (size_t i = 0; i < 10; i++) {
       cout << std::setprecision(20) << timeStamps[i] << endl;
@@ -287,7 +290,7 @@ void LoadDataset(void){
   #endif
 
   // reading GPS positions
-  gpsPositions = readGPSPositions("../data1/gps_info.txt");
+  gpsPositions = readGPSPositions(datasetDirectory + "/gps_info.txt");
   #ifdef LOG_EN
     for (auto i = 0; i != 10; i++) {
       std::cout << gpsPositions[i].time << " ";
