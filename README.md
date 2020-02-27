@@ -54,6 +54,6 @@ first navigate into */bin* folder:
 ## Viewing Results
 By running third run command code will generate an HTML file which look like the image below showing searched test image and 10 most similar candidates in the dataset with their locations on the google maps and a measure of similarity in percentage.
 
-**NOTE** result image is is stored in */html* folder
+**NOTE** result page is is stored in */html* folder
 
 ![Result HTML Page](...)
